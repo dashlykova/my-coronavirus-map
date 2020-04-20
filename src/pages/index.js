@@ -6,6 +6,7 @@ import axios from 'axios';
 import Layout from 'components/Layout';
 import Container from 'components/Container';
 import Map from 'components/Map';
+import { array } from 'prop-types';
 
 
 const LOCATION = {
@@ -16,7 +17,7 @@ const CENTER = [LOCATION.lat, LOCATION.lng];
 
 
 const IndexPage = () => {
-  
+
 
   /**
    * mapEffect
@@ -34,6 +35,27 @@ const IndexPage = () => {
       return;
     }
     const { data = [] } = response;
+    const hasData = Array.isArray(data) && array.length > 0;
+
+    if (!hasData) return;
+
+    const geoJson = {
+      type: 'FeatureCollection',
+      features: data.map((country = {}) => {
+        const { countryInfo = {} } = country;
+        const { lat, long: lng } = countryInfo;
+        return {
+          type: 'Feature',
+          properties: {
+            ...country,
+          },
+          geometry: {
+            type: 'Point',
+            coordinates: [ lng, lat ]
+          }
+        }
+      })
+    }
   }
 
 }
