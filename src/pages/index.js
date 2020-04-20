@@ -1,6 +1,6 @@
 import React from 'react';
 import Helmet from 'react-helmet';
-import L from 'leaflet';
+import L, { latLng, divIcon } from 'leaflet';
 import axios from 'axios';
 
 import Layout from 'components/Layout';
@@ -51,12 +51,59 @@ const IndexPage = () => {
           },
           geometry: {
             type: 'Point',
-            coordinates: [ lng, lat ]
+            coordinates: [lng, lat]
           }
         }
       })
     }
-  }
+    const geoJsonLayers = new L.GeoJSON(geoJson, {
+      pointToLayer: (feature = {}, latlng) => {
+        const { properties = {} } = feature;
+        let updatedFormatted;
+        let caseString;
 
+        const {
+          country,
+          updated,
+          cases,
+          deaths,
+          recovered
+        } = properties
+
+        caseString = `${cases}`;
+
+        if (cases > 1000) {
+          casesString = `${casesString.slice(0, -3)}k+`
+        }
+
+        if (updated) {
+          updatedFormatted = new Date(updated).toLocaleString();
+        }
+        const html = `
+          <span class="icon-marker">
+            <span class="icon-marker-tooltip">
+              <h2>${country}</h2>
+              <ul>
+                <li><strong>Confirmed:</strong> ${cases}
+                <li><strong>Deaths:</strong> ${deaths}
+                <li><strong>Recovered:</strong> ${recovered}
+                <li><strong>Last Updated:</strong> ${updatedFormatted}
+              </ul> 
+            </span>
+            ${ casesString}
+          </span>
+          `;
+
+        return L.marker(latlng, {
+          icon: L.divIcon({
+            className: 'icon',
+            html
+          }),
+          riseOnHover: true
+        })
+      }
+    })
+  }
+  geoJsonLayers.addTo(map)
 }
 export default IndexPage;
